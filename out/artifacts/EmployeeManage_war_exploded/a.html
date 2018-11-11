@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>员工信息</title>
+    <!-- 新 Bootstrap 核心 CSS 文件 -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- 可选的Bootstrap主题文件（一般不使用） -->
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"></script>
+
+    <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+    <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        function getXMLHttpRequest(){
+            var xmlhttp;
+            if(window.XMLHttpRequest){
+                //主流浏览器
+                xmlhttp=new XMLHttpRequest();
+            }else{
+                //ie6,7……
+                xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            return xmlhttp;
+        }
+        var curr_pageno=0;
+        var curr_pagesum=0;
+        function loadData(pageno){
+            var xmlhttp=getXMLHttpRequest();
+            xmlhttp.onreadystatechange=function (){
+                if(xmlhttp.readyState==4&&xmlhttp.status==200){
+                    //请求状态是成功（200），读取响应完成（4）
+                    var str=xmlhttp.responseText;
+                    //str就是json
+                    var object=JSON.parse(str);
+                    var employees=object.employees;
+                    curr_pageno=object.pageNo;
+                    curr_pagesum=object.pageSum;
+                    var temp="";
+                    for (var i = 0; i < employees.length; i++) {
+                        var classString="";
+                        if(i%2==1){
+                            classString="class='info'";
+                        }
+                        temp=temp+"<tr "+classString+"><td>"+employees[i].id+"</td><td>"+employees[i].name+"</td><td>"+employees[i].age+"</td><td>"+employees[i].position+"</td><td>"+employees[i].salary+"</td><td>"+employees[i].date+"</td><td><a href=\"show?id="+employees[i].id+"\" class=\"btn btn-default\">修改</a></td><td><a href=\"delete?id="+employees[i].id+"\" class=\"btn btn-default\">删除</a></td></tr>"
+                    }
+                    document.getElementById("trs").innerHTML=temp;
+                    //计算应该有多少个按钮
+                    temp="";
+                    //上一页
+                    temp=temp+"<li><a href=\"#\" onclick=\"return gopage(-1)\">上一页</a></li>";
+                    for (var i = 0; i < object.pageSum; i++) {
+                        //数组对应页码
+                        temp=temp+"<li><a href=\"#\" onclick=\"return loadData("+(i+1)+")\">"+(i+1)+"</a></li>";
+                    }
+                    //下一页
+                    temp=temp+"<li><a href=\"#\" onclick=\"return gopage(1)\">下一页</a></li>";
+
+                    document.getElementById("lis").innerHTML=temp;
+                }
+
+
+            };
+            var url="page";
+            //打开连接,以post方式打开url这个连接
+            xmlhttp.open("post",url);
+            //设置请求头信息
+            xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+
+            xmlhttp.send("pagesize=8&pageno="+pageno);
+
+            //点击页码的时候，不会发生跳转
+            return false;
+        }
+
+        //上一页下一页专用方法
+        //n可能是-1或者1
+        function gopage(n){
+            if(curr_pageno+n==0){
+                //你点击的是第1页的前一页
+                return false;
+            }
+            if(curr_pageno+n==curr_pagesum+1){
+                //你点击的是最后一页的下一页
+                return false;
+            }
+
+            curr_pageno=curr_pageno+n;
+            loadData(curr_pageno);
+            return false;
+        }
+    </script>
+</head>
+<body onload="loadData(1)" background="images/bg.jpg">
+<nav class="navbar-inverse visible-lg visible-md" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand">员工管理系统</a>
+        </div>
+        <div>
+            <ul class="nav navbar-nav">
+                <li><a href="a.html">主页</a></li>
+                <li><a href="add.jsp">添加员工</a></li>
+                <form class="navbar-form navbar-left" role="search" method="post"  action="search">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search" name="name" id="name">
+                    </div>
+                    <button type="submit" class="btn btn-default">提交</button>
+                </form>
+                <li><a href="index.jsp">退出系统</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="row clearfix">
+        <div class="col-md-12 column">
+            <h3>
+                员工信息
+            </h3>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>
+                        编号
+                    </th>
+                    <th>
+                        姓名
+                    </th>
+                    <th>
+                        年龄
+                    </th>
+                    <th>
+                        职位
+                    </th>
+                    <th>
+                        薪水
+                    </th>
+                    <th>
+                        入职日期
+                    </th>
+                    <th colspan="2">
+                        操作
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="trs">
+
+
+                </tbody>
+            </table>
+            <ul class="pagination" id="lis">
+
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>
